@@ -1,4 +1,6 @@
-from tkinter import Tk, Entry, Label, Button, Listbox, messagebox, END
+import tkinter as tk
+from tkinter import Tk, messagebox, StringVar, END
+from tkinter import ttk
 from core import TaskManagerBase
 
 class TaskManagerApp(TaskManagerBase):
@@ -6,28 +8,43 @@ class TaskManagerApp(TaskManagerBase):
         super().__init__()
         self.root = root
         self.root.title("Advanced To-Do List (OOP)")
+        self.root.geometry("500x400")  # Increased width
+        self.root.resizable(False, False)
 
-        self.entry = Entry(root, width=30)
-        self.due_date_label = Label(root, text="Due Date (DD-MM-YYYY):")
-        self.due_date_entry = Entry(root, width=15)
-        self.entry.pack(pady=10)
-        self.due_date_label.pack()
-        self.due_date_entry.pack()
+        style = ttk.Style()
+        style.theme_use('clam')  # Try 'clam', 'alt', 'default', or 'vista'
 
-        self.add_button = Button(root, text="Add Task", command=self.add_task)
-        self.remove_button = Button(root, text="Remove Task", command=self.remove_task)
-        self.clear_button = Button(root, text="Clear All", command=self.clear_tasks)
-        self.save_button = Button(root, text="Save Tasks", command=self.save_tasks_gui)
-        self.load_button = Button(root, text="Load Tasks", command=self.load_tasks_gui)
+        main_frame = ttk.Frame(root, padding="10 10 10 10")
+        main_frame.pack(fill='both', expand=True)
 
-        self.add_button.pack()
-        self.remove_button.pack()
-        self.clear_button.pack()
-        self.save_button.pack()
-        self.load_button.pack()
+        entry_frame = ttk.LabelFrame(main_frame, text="Add New Task", padding="10 10 10 10")
+        entry_frame.pack(fill='x', pady=10)
 
-        self.listbox = Listbox(root, width=50)
-        self.listbox.pack(pady=10)
+        self.entry = ttk.Entry(entry_frame, width=30)
+        self.entry.grid(row=0, column=0, padx=5, pady=5)
+        self.due_date_entry = ttk.Entry(entry_frame, width=15)
+        self.due_date_entry.grid(row=0, column=1, padx=5, pady=5)
+        ttk.Label(entry_frame, text="Due Date (DD-MM-YYYY):").grid(row=1, column=1, sticky='w', padx=5)
+
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill='x', pady=5)
+
+        self.add_button = ttk.Button(button_frame, text="Add Task", command=self.add_task, width=12)
+        self.add_button.pack(side='left', padx=3)
+        self.remove_button = ttk.Button(button_frame, text="Remove Task", command=self.remove_task, width=12)
+        self.remove_button.pack(side='left', padx=3)
+        self.clear_button = ttk.Button(button_frame, text="Clear All", command=self.clear_tasks, width=12)
+        self.clear_button.pack(side='left', padx=3)
+        self.save_button = ttk.Button(button_frame, text="Save Tasks", command=self.save_tasks_gui, width=12)
+        self.save_button.pack(side='left', padx=3)
+        self.load_button = ttk.Button(button_frame, text="Load Tasks", command=self.load_tasks_gui, width=12)
+        self.load_button.pack(side='left', padx=3)
+
+        listbox_frame = ttk.LabelFrame(main_frame, text="Tasks", padding="10 10 10 10")
+        listbox_frame.pack(fill='both', expand=True, pady=10)
+
+        self.listbox = tk.Listbox(listbox_frame, width=50, height=10, font=('Segoe UI', 10))
+        self.listbox.pack(fill='both', expand=True)
 
         self.load_tasks_gui()
 
