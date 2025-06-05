@@ -1,18 +1,23 @@
 import tkinter as tk
-from tkinter import Tk, messagebox, StringVar, END
-from tkinter import ttk
+from tkinter import ttk, messagebox, END
 from core import TaskManagerBase
+import os
 
 class TaskManagerApp(TaskManagerBase):
     def __init__(self, root):
         super().__init__()
         self.root = root
         self.root.title("Advanced To-Do List (OOP)")
-        self.root.geometry("550x400")  # Increased width
+        self.root.geometry("550x400")
         self.root.resizable(False, False)
 
+        # REMOVE these lines:
+        # self.root.tk.call("source", os.path.join(os.path.dirname(__file__), "azure.tcl"))
+        # self.root.tk.call("set_theme", "dark")
+
+        # Set dark theme for ttk (optional, but safe)
         style = ttk.Style()
-        style.theme_use('clam')  # Try 'clam', 'alt', 'default', or 'vista'
+        style.theme_use('azure-dark')
 
         main_frame = ttk.Frame(root, padding="10 10 10 10")
         main_frame.pack(fill='both', expand=True)
@@ -25,6 +30,7 @@ class TaskManagerApp(TaskManagerBase):
 
         self.due_date_entry = ttk.Entry(entry_frame, width=15)
         self.due_date_entry.grid(row=0, column=1, padx=5, pady=5)
+
         ttk.Label(entry_frame, text="Due Date (DD-MM-YYYY):").grid(row=1, column=1, sticky='w', padx=5)
 
         self.priority_label = ttk.Label(entry_frame, text="Priority:")
@@ -32,10 +38,9 @@ class TaskManagerApp(TaskManagerBase):
 
         self.priority_var = tk.StringVar()
         self.priority_combo = ttk.Combobox(entry_frame, textvariable=self.priority_var, values=["Low", "Medium", "High"], width=8, state="readonly")
-        self.priority_combo.current(1)  # Default to Medium
+        self.priority_combo.current(1)
         self.priority_combo.grid(row=0, column=3, padx=5, pady=5)
 
-        # Make columns expand to fill available space
         entry_frame.columnconfigure(0, weight=2)
         entry_frame.columnconfigure(1, weight=1)
         entry_frame.columnconfigure(2, weight=0)
@@ -62,8 +67,15 @@ class TaskManagerApp(TaskManagerBase):
         listbox_frame = ttk.LabelFrame(main_frame, text="Tasks", padding="10 10 10 10")
         listbox_frame.pack(fill='both', expand=True, pady=10)
 
-        self.listbox = tk.Listbox(listbox_frame, width=50, height=10, font=('Segoe UI', 10))
-        self.listbox.pack(fill='both', expand=True)
+        # --- Replace Listbox with Treeview ---
+        self.tree = ttk.Treeview(listbox_frame, columns=("Task", "Due", "Priority"), show="headings", selectmode="browse")
+        self.tree.heading("Task", text="Task")
+        self.tree.heading("Due", text="Due Date")
+        self.tree.heading("Priority", text="Priority")
+        self.tree.column("Task", width=220)
+        self.tree.column("Due", width=100)
+        self.tree.column("Priority", width=80)
+        self.tree.pack(fill='both', expand=True)
 
         self.load_tasks_gui()
 
@@ -72,29 +84,37 @@ class TaskManagerApp(TaskManagerBase):
         due_date = self.due_date_entry.get()
         priority = self.priority_var.get()
         if task and due_date:
-            task_with_due_date = f"{task} (Due: {due_date}, Priority: {priority})"
-            self.listbox.insert(END, task_with_due_date)
+            self.tree.insert("", "end", values=(task, due_date, priority))
             self.entry.delete(0, END)
             self.due_date_entry.delete(0, END)
         else:
             messagebox.showwarning("Warning", "You must enter a task and due date!")
 
     def remove_task(self):
-        try:
-            selected_task_index = self.listbox.curselection()[0]
-            self.listbox.delete(selected_task_index)
-        except IndexError:
-            pass
+        selected = self.tree.selection()
+        if selected:
+            self.tree.delete(selected[0])
 
     def clear_tasks(self):
-        self.listbox.delete(0, END)
+        for item in self.tree.get_children():
+            self.tree.delete(item)
 
     def save_tasks_gui(self):
-        tasks = self.listbox.get(0, END)
+        tasks = []
+        for item in self.tree.get_children():
+            values = self.tree.item(item, "values")
+            tasks.append(f"{values[0]} (Due: {values[1]}, Priority: {values[2]})")
         self.save_tasks(tasks)
 
     def load_tasks_gui(self):
-        self.listbox.delete(0, END)
+        for item in self.tree.get_children():
+            self.tree.delete(item)
         self.load_tasks()
         for task in self.tasks:
-            self.listbox.insert(END, task)
+            # Try to parse the saved string, fallback to putting it in the Task column
+            try:
+                name, rest = task.split(" (Due: ")
+                due, priority = rest[:-1].split(", Priority: ")
+                self.tree.insert("", "end", values=(name, due, priority))
+            except Exception:
+                self.tree.insert("", "end", values=(task, "", ""))
