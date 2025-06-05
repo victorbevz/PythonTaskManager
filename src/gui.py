@@ -7,20 +7,20 @@ class TaskManagerApp(TaskManagerBase):
     def __init__(self, root):
         super().__init__()
         self.root = root
-        self.root.title("Advanced To-Do List (OOP)")
+        self.root.title("Task Manager")
         self.root.geometry("550x400")
         self.root.resizable(False, False)
 
-        # REMOVE these lines:
-        # self.root.tk.call("source", os.path.join(os.path.dirname(__file__), "azure.tcl"))
-        # self.root.tk.call("set_theme", "dark")
-
-        # Set dark theme for ttk (optional, but safe)
+        # Set dark theme for ttk
         style = ttk.Style()
         style.theme_use('azure-dark')
 
         main_frame = ttk.Frame(root, padding="10 10 10 10")
         main_frame.pack(fill='both', expand=True)
+
+        # --- Theme toggle button in top right ---
+        theme_btn = ttk.Button(main_frame, text="Toggle Theme", command=self.toggle_theme)
+        theme_btn.pack(anchor="ne", padx=0, pady=0)
 
         entry_frame = ttk.LabelFrame(main_frame, text="Add New Task", padding="10 10 10 10")
         entry_frame.pack(fill='x', pady=10)
@@ -67,7 +67,6 @@ class TaskManagerApp(TaskManagerBase):
         listbox_frame = ttk.LabelFrame(main_frame, text="Tasks", padding="10 10 10 10")
         listbox_frame.pack(fill='both', expand=True, pady=10)
 
-        # --- Replace Listbox with Treeview ---
         self.tree = ttk.Treeview(listbox_frame, columns=("Task", "Due", "Priority"), show="headings", selectmode="browse")
         self.tree.heading("Task", text="Task")
         self.tree.heading("Due", text="Due Date")
@@ -78,6 +77,20 @@ class TaskManagerApp(TaskManagerBase):
         self.tree.pack(fill='both', expand=True)
 
         self.load_tasks_gui()
+
+        # Track current theme
+        self.current_theme = "dark"
+
+    def toggle_theme(self):
+        # Toggle between dark and light Azure themes
+        if self.current_theme == "dark":
+            self.root.tk.call("set_theme", "light")
+            ttk.Style().theme_use('azure-light')
+            self.current_theme = "light"
+        else:
+            self.root.tk.call("set_theme", "dark")
+            ttk.Style().theme_use('azure-dark')
+            self.current_theme = "dark"
 
     def add_task(self):
         task = self.entry.get()
