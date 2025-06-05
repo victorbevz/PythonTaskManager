@@ -29,8 +29,3 @@ python src/main.py
 - Clear all tasks.
 - Save tasks to a file.
 - Load tasks from a file.
-
-
-## License
-
-This project is licensed under the MIT License.
